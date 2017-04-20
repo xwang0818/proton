@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SSH_FILE=$1
+VM_NAME=$2
+
+if [ -z "$SSH_FILE" ] || [ -z "$VM_NAME" ]; then
+   echo "Usage: $0 <ssh_config> <vm_name>"
+   exit 0
+fi
+
+
+nova show $VM_NAME
+

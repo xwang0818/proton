@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Gathers information in order for you to ping your 
+# internal-external VM from router namespace while
+# still in your controller.
+# Prints out the command to do so.
+
+ROUTER=default
+
+ROUTER_ID=$(openstack router show $ROUTER | grep -w id | grep -v + | awk '{ print $4 }')
+
+NETNS=$(ip netns | grep $ROUTER_ID | awk '{ print $1 }')
+
+echo "ip netns exec $NETNS ping <IP>"
+

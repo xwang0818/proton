@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Create only one VM on the internal network attached to the default router.
+
+PREFIX=$1
+TEST_PREFIX="-IE-"
+
+if [ -z "$PREFIX" ];
+then
+  TEST_PREFIX="IE-"
+fi
+
+VM_NAME=$PREFIX$TEST_PREFIX"vm-1"
+SECURITY_GROUP_NAME=$PREFIX$TEST_PREFIX"sec-group-1"
+NETWORK_NAME="internal"
+
+if [ `openstack security group list | grep $SECURITY_GROUP_NAME | wc -l` -lt 1 ];
+then
+  echo "Creating sec group $SECURITY_GROUP_NAME ..."
+  openstack security group create $SECURITY_GROUP_NAME --description $SECURITY_GROUP_NAME
+  openstack security group rule create --ingress --protocol tcp --dst-port 22:22 --remote-ip 0.0.0.0/0 $SECURITY_GROUP_NAME
+  openstack security group rule create --ingress --protocol icmp $SECURITY_GROUP_NAME
+fi
+
+# Find network ID
+NETWORK_ID=$(openstack network show $NETWORK_NAME | grep -w id | awk '{ print $4 }')
+
+if [ `openstack server list | grep $VM_NAME | wc -l` -lt 1 ];
+then
+  echo "Creating instance $VM_NAME ..."
+  openstack server create --image cirros --flavor m1.tiny --nic net-id=$NETWORK_ID --security-group $SECURITY_GROUP_NAME $VM_NAME
+fi

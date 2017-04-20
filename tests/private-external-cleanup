@@ -1,0 +1,6 @@
+#!/bin/bash
+../tools/delete_all_routers.sh PE-router
+../tools/delete_all_vms.sh PE-vm
+../tools/delete_all_networks.sh PE-network
+../tools/delete_all_security_groups.sh PE-sec-group
+

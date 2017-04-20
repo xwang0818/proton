@@ -1,0 +1,59 @@
+#!/bin/bash
+
+CIDR=$1
+PREFIX=$2
+TEST_PREFIX="-PE-"
+# Change for stress testing
+NUM_OF_VM=3
+
+if [ -z "$CIDR" ];
+then
+  echo "$0 <cidr> [prefix]"
+  exit 0
+fi
+
+if [ -z "$PREFIX" ];
+then
+  TEST_PREFIX="PE-"
+fi
+
+VM_NAME=$PREFIX$TEST_PREFIX
+NETWORK_NAME=$PREFIX$TEST_PREFIX"network-1"
+SUBNET_NAME=$PREFIX$TEST_PREFIX"subnet-1"
+ROUTER_NAME=$PREFIX$TEST_PREFIX"router-1"
+SECURITY_GROUP_NAME=$PREFIX$TEST_PREFIX"sec-group-1"
+
+if [ `openstack security group list | grep $SECURITY_GROUP_NAME | wc -l` -lt 1 ];
+then
+  echo "Creating sec group $SECURITY_GROUP_NAME ..."
+  openstack security group create $SECURITY_GROUP_NAME --description $SECURITY_GROUP_NAME
+  openstack security group rule create --ingress --protocol tcp $SECURITY_GROUP_NAME
+  openstack security group rule create --ingress --protocol icmp $SECURITY_GROUP_NAME
+fi
+
+if [ `openstack network list | grep $NETWORK_NAME | wc -l` -lt 1 ];
+then
+  echo "Creating network $NETWORK_NAME ..."
+  openstack network create $NETWORK_NAME
+  neutron subnet-create $NETWORK_NAME $CIDR --name $SUBNET_NAME
+fi
+
+
+if [ `neutron router-list | grep $ROUTER_NAME | wc -l` -lt 1 ];
+then 
+  echo "Creating router $ROUTER_NAME ...."
+  neutron router-create $ROUTER_NAME
+fi
+
+neutron router-gateway-set $ROUTER_NAME external
+neutron router-interface-add $ROUTER_NAME $SUBNET_NAME
+
+for ((i=0; i<NUM_OF_VM; i++));
+do
+  if [ `nova list | grep $VM_NAME$i | wc -l` -lt 1 ];
+  then
+    echo "Creating instance $VM_NAME$i ..."
+    nova boot --image cirros --flavor m1.tiny --nic net-name=$NETWORK_NAME --security-groups $SECURITY_GROUP_NAME $VM_NAME$i
+  fi
+done
+

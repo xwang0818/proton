@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PATTERN=$1
+FILTER="default"
+
+if [ -z "$PATTERN" ];
+then
+  PATTERN='^\S*'
+else
+  FILTER="XXXXXXXXXXXXXXX"
+fi
+
+ROUTER_LIST=$(openstack router list | grep -v ID | grep -v $FILTER | grep -v + | grep -E $PATTERN | awk '{ print $2 }')
+
+for item in $ROUTER_LIST;
+do
+  echo $item;
+  neutron l3-agent-list-hosting-router $item
+done

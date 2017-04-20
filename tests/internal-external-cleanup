@@ -1,0 +1,6 @@
+#!/bin/bash
+../tools/delete_all_routers.sh IE-router
+../tools/delete_all_vms.sh IE-vm
+../tools/delete_all_networks.sh IE-network
+../tools/delete_all_security_groups.sh IE-sec-group
+

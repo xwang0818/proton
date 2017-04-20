@@ -1,0 +1,4 @@
+#cloud-config
+password: Sm4rtcl0ud!
+chpasswd: { expire: False }
+ssh_pwauth: True

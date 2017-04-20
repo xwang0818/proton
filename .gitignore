@@ -1,0 +1,3 @@
+data/*.stackrc
+data/*.crt
+data/*.ssh_config
